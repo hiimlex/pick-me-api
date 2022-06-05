@@ -1,2 +1,1 @@
-export * from "./counter.model";
-export * from "./users.model";
+export * from "./user.model";

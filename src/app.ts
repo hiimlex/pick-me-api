@@ -1,7 +1,7 @@
 import { json } from "body-parser";
 import express from "express";
 import connection from "./database/connection";
-import appRouter from "./routes";
+import appRouter from "./routes/index";
 
 class App {
   public express!: express.Application;
@@ -33,7 +33,7 @@ class App {
     appRouter(this.express);
   }
 
-  public listen(port: string): void {
+  public listen(port: string | number): void {
     this.express.listen(port, () => {
       console.log("server is running on port " + port);
     });

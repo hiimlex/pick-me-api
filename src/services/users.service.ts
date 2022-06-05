@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
-import { IUser, UsersDocument } from "../models";
+import { User } from "../models";
+import { UsersModel } from "../schemas";
 
 class UsersService {
-  public async index(req: Request, res: Response): Promise<Response<IUser[]>> {
+  public async index(req: Request, res: Response): Promise<Response<User[]>> {
     try {
-      const users = await UsersDocument.find({});
+      const users = await UsersModel.find({});
 
       return res.status(200).json(users);
     } catch (err: any) {
@@ -12,9 +13,9 @@ class UsersService {
     }
   }
 
-  public async show(req: Request, res: Response): Promise<Response<IUser>> {
+  public async show(req: Request, res: Response): Promise<Response<User>> {
     try {
-      const user = await UsersDocument.findById(req.params.id);
+      const user = await UsersModel.findById(req.params.id);
 
       if (!user) {
         throw new Error("User not found");
@@ -26,13 +27,13 @@ class UsersService {
     }
   }
 
-  public async create(req: Request, res: Response): Promise<Response> {
+  public async create(req: Request, res: Response): Promise<Response<User>> {
     try {
       if (!req.body.id) {
         req.body.id = 0;
       }
 
-      const user = await UsersDocument.create(req.body);
+      const user = await UsersModel.create(req.body);
 
       return res.status(201).json(user);
     } catch (err: any) {
@@ -40,13 +41,15 @@ class UsersService {
     }
   }
 
-  public async update(req: Request, res: Response): Promise<Response<IUser>> {
+  public async update(req: Request, res: Response): Promise<Response<User>> {
     try {
-      const user = await UsersDocument.findByIdAndUpdate(
-        req.params.id,
-        req.body,
-        { new: false }
-      );
+      const user = await UsersModel.findByIdAndUpdate(req.params.id, req.body, {
+        new: false,
+      });
+
+      if(!user){
+        throw new Error("User not found");
+      }
 
       return res.status(200).json(user);
     } catch (err: any) {
@@ -54,15 +57,18 @@ class UsersService {
     }
   }
 
-  public async delete(req: Request, res: Response): Promise<Response<IUser>> {
+  public async delete(
+    req: Request,
+    res: Response
+  ): Promise<Response<{ deletedUser: User }>> {
     try {
-      const user = await UsersDocument.findByIdAndRemove(req.params.id);
+      const user = await UsersModel.findByIdAndRemove(req.params.id);
 
       if (!user) {
         throw new Error("User not found");
       }
 
-      return res.status(200).json(user);
+      return res.status(200).json({ deletedUser: user });
     } catch (err: any) {
       return res.status(400).json({ error: err.toString() });
     }
