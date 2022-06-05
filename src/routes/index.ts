@@ -1,9 +1,10 @@
-import { Request, Response, Router } from "express";
+import express from "express";
+import UsersController from "../controllers/users.controller";
 
-const router = Router();
+const userController = new UsersController();
 
-router.get("/users", [], (req: Request, res: Response) => {
-  return res.send({ name: "Alex", id: "1", bio: "Frontender" });
-});
+const appRouter = (app: express.Application) => {
+  app.use("/api", userController.router);
+};
 
-export { router as appRouter };
+export default appRouter;
