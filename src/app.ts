@@ -1,5 +1,6 @@
 import { json } from "body-parser";
 import express from "express";
+import connection from "./database/connection";
 import { appRouter } from "./routes";
 
 class App {
@@ -11,6 +12,17 @@ class App {
 
     this.middlewares();
     this.routes();
+    this.connectDB();
+  }
+
+  private async connectDB() {
+    try {
+      await connection.then(() => {
+        console.log("Database is connected");
+      });
+    } catch (err) {
+      console.log(err);
+    }
   }
 
   private middlewares(): void {
