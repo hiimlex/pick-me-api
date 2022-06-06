@@ -4,8 +4,7 @@ export interface User {
   name: string;
   bio: string;
   email: string;
-  tokens: {
-    access: string;
-    token: string;
-  }[];
+  accessToken: string;
+  createdAt: Date;
+  updatedAt: Date;
 }

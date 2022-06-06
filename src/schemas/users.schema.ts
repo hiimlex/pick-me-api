@@ -1,14 +1,21 @@
-import { model, Schema, Document } from "mongoose";
+import { model, Schema, Document, Model } from "mongoose";
 import { User } from "../models";
 import { CounterModel } from "./counter.schema";
 import * as jwt from "jsonwebtoken";
 import * as passwordHash from "password-hash";
 
-interface UserDocument extends User, Document {
+interface IUserDocument extends User, Document {
   _id: number;
+  generateAuthToken(): Promise<string>;
+  removeToken(token: string): Promise<void>;
 }
 
-const TOKEN_SECRET = process.env.TOKEN_SECRET || "secret";
+interface IUserModel extends Model<IUserDocument> {
+  findByToken(token: string): Promise<IUserDocument>;
+  findByCredentials(email: string, password: string): Promise<IUserDocument>;
+}
+
+export const TOKEN_SECRET = process.env.TOKEN_SECRET || "secret";
 
 const UserSchema = new Schema(
   {
@@ -26,35 +33,24 @@ const UserSchema = new Schema(
       unique: true,
       trim: true,
     },
-    tokens: [
-      {
-        access: {
-          type: String,
-          required: true,
-        },
-        token: {
-          type: String,
-          required: true,
-        },
-      },
-    ],
-    createdAt: {
-      type: Date,
-      default: Date.now,
+    accessToken: {
+      type: String,
     },
   },
-  { versionKey: false, collection: "users" }
+  {
+    versionKey: false,
+    collection: "users",
+    timestamps: { createdAt: "createdAt", updatedAt: "updatedAt" },
+  }
 );
 
 UserSchema.pre("save", async function (next) {
-  const user: UserDocument = this;
+  const user: IUserDocument = this;
 
-  if (!user.isNew) {
-    return;
+  if (user.isNew) {
+    const idCounter = await CounterModel.increment("user");
+    user._id = idCounter;
   }
-
-  const idCounter = await CounterModel.increment("user");
-  user._id = idCounter;
 
   if (user.isModified("password")) {
     user.password = passwordHash.generate(user.password);
@@ -64,22 +60,21 @@ UserSchema.pre("save", async function (next) {
 });
 
 UserSchema.methods.toJSON = function () {
-  const user = this as UserDocument;
-  const { _id, password, ...rest } = user.toObject();
+  const user = this as IUserDocument;
+  const { _id, password, accessToken, ...rest } = user.toObject();
 
-  return rest;
+  return { id: _id, ...rest };
 };
 
-UserSchema.methods.generateAuthToken = function () {
-  const user = this as UserDocument;
-  const access = "auth";
-  const token = jwt.sign({ _id: user._id, access }, TOKEN_SECRET);
+UserSchema.methods.generateAuthToken = async function () {
+  const user = this as IUserDocument;
+  const token = jwt.sign({ _id: user._id }, TOKEN_SECRET);
 
-  user.tokens.push({ access, token });
+  user.accessToken = token;
 
-  return user.save().then(() => {
-    return token;
-  });
+  await user.save();
+
+  return token;
 };
 
 UserSchema.methods.removeToken = async function (token: string): Promise<void> {
@@ -87,15 +82,15 @@ UserSchema.methods.removeToken = async function (token: string): Promise<void> {
 
   return user.update({
     $pull: {
-      tokens: { token },
+      accessToken: token,
     },
   });
 };
 
 UserSchema.statics.findByToken = async function (
   token: string
-): Promise<UserDocument> {
-  const UserModel = this;
+): Promise<IUserDocument> {
+  const UsersModel = this;
   let decoded: any;
 
   try {
@@ -104,14 +99,13 @@ UserSchema.statics.findByToken = async function (
     return Promise.reject("Invalid token");
   }
 
-  const user = UserModel.findOne({
+  const user = await UsersModel.findOne({
     _id: decoded._id,
-    "tokens.token": token,
-    "tokens.access": "auth",
+    accessToken: token,
   });
 
   if (!user) {
-    return Promise.reject("User not found");
+    return Promise.reject("Token expired");
   }
 
   return user;
@@ -120,7 +114,7 @@ UserSchema.statics.findByToken = async function (
 UserSchema.statics.findByCredentials = async function (
   email: string,
   password: string
-): Promise<UserDocument> {
+): Promise<IUserDocument> {
   let User = this;
 
   const user = await User.findOne({ email });
@@ -135,7 +129,7 @@ UserSchema.statics.findByCredentials = async function (
 
   return user;
 };
-
-const UsersModel = model<UserDocument>("User", UserSchema);
+// TODO: Search for the type notation
+const UsersModel: IUserModel = model<IUserDocument, any>("User", UserSchema);
 
 export { UsersModel };

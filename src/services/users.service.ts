@@ -47,7 +47,7 @@ class UsersService {
         new: false,
       });
 
-      if(!user){
+      if (!user) {
         throw new Error("User not found");
       }
 
