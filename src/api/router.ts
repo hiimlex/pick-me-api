@@ -1,6 +1,6 @@
 import express from "express";
-import AuthController from "../controllers/auth.controller";
-import UsersController from "../controllers/users.controller";
+import AuthController from "./components/auth/auth.controller";
+import UsersController from "./components/users/users.controller";
 
 const userController = new UsersController();
 const authController = new AuthController();

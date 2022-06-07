@@ -1,6 +1,5 @@
-import { times } from "underscore";
-import AuthService from "../services/auth.service";
-import BaseController from "./base.controller";
+import { AuthRepository } from "./auth.repository";
+import BaseController from "../../../core/controllers/base.controller";
 
 class AuthController extends BaseController {
   public apiPrefix = "/auth";
@@ -12,12 +11,12 @@ class AuthController extends BaseController {
   }
 
   public initRoutes(): void {
-    this.router.post(this.apiPrefix + "/signin", AuthService.login);
+    this.router.post(this.apiPrefix + "/signin", AuthRepository.login);
     this.router.get(
       this.apiPrefix + "/currentUser",
       [],
-      AuthService.verifyToken,
-      AuthService.currentUser
+      AuthRepository.verifyToken,
+      AuthRepository.currentUser
     );
   }
 }

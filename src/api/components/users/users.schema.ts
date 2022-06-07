@@ -1,6 +1,6 @@
 import { model, Schema, Document, Model } from "mongoose";
-import { User } from "../models";
-import { CounterModel } from "./counter.schema";
+import { User } from "./user.model";
+import { CounterModel } from "../counter/counter.schema";
 import * as jwt from "jsonwebtoken";
 import * as passwordHash from "password-hash";
 

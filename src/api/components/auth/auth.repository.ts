@@ -1,9 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import * as jwt from "jsonwebtoken";
-import { User } from "../models";
-import { TOKEN_SECRET, UsersModel } from "../schemas";
+import { User, TOKEN_SECRET, UsersModel } from "../users";
 
-class AuthenticationService {
+class AuthRepositoryClass {
   public async login(
     req: Request,
     res: Response
@@ -91,4 +90,6 @@ class AuthenticationService {
   }
 }
 
-export default new AuthenticationService();
+const AuthRepository: AuthRepositoryClass = new AuthRepositoryClass();
+
+export { AuthRepository };

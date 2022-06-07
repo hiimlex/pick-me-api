@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import { User } from "../models";
-import { UsersModel } from "../schemas";
+import { User } from "./user.model";
+import { UsersModel } from "./users.schema";
 
-class UsersService {
+class UsersRepositoryClass {
   public async index(req: Request, res: Response): Promise<Response<User[]>> {
     try {
       const users = await UsersModel.find({});
@@ -75,4 +75,6 @@ class UsersService {
   }
 }
 
-export default new UsersService();
+const UsersRepository: UsersRepositoryClass = new UsersRepositoryClass();
+
+export { UsersRepository };

@@ -1,43 +1,7 @@
-import { json } from "body-parser";
-import express from "express";
-import connection from "./database/connection";
-import appRouter from "./routes/index";
+import "dotenv/config";
+import { Server } from "./api/server";
 
-class App {
-  public express!: express.Application;
-  public apiPrefix = process.env.API_PREFIX || "/api";
+const PORT = process.env.PORT || 80;
+const server = new Server();
 
-  constructor() {
-    this.express = express();
-
-    this.middlewares();
-    this.routes();
-    this.connectDB();
-  }
-
-  private async connectDB() {
-    try {
-      await connection.then(() => {
-        console.log("Database is connected");
-      });
-    } catch (err: any) {
-      throw new Error(err);
-    }
-  }
-
-  private middlewares(): void {
-    this.express.use(json());
-  }
-
-  private routes(): void {
-    appRouter(this.express);
-  }
-
-  public listen(port: string | number): void {
-    this.express.listen(port, () => {
-      console.log("server is running on port " + port);
-    });
-  }
-}
-
-export default new App();
+server.listen(PORT);
