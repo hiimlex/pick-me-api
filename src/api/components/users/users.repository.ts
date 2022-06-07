@@ -1,78 +1,104 @@
 import { Request, Response } from "express";
-import { User } from "./user.model";
-import { UsersModel } from "./users.schema";
+import { HttpException } from "../../../core/utils";
+import { User, UsersModel } from "./user.model";
 
 class UsersRepositoryClass {
-  public async index(req: Request, res: Response): Promise<Response<User[]>> {
-    try {
-      const users = await UsersModel.find({});
+	async index(req: Request, res: Response): Promise<Response<User[]>> {
+		try {
+			const users = await UsersModel.find({});
 
-      return res.status(200).json(users);
-    } catch (err: any) {
-      return res.status(400).json({ error: err.toString() });
-    }
-  }
+			if (!users) {
+				throw new NotFoundUserException();
+			}
 
-  public async show(req: Request, res: Response): Promise<Response<User>> {
-    try {
-      const user = await UsersModel.findById(req.params.id);
+			return res.status(200).json(users);
+		} catch (err: any) {
+			if (err instanceof HttpException) {
+				return res.status(err.status).json({ error: err.message });
+			}
 
-      if (!user) {
-        throw new Error("User not found");
-      }
+			return res.status(500).json({ error: err.message });
+		}
+	}
 
-      return res.status(200).json(user);
-    } catch (err: any) {
-      return res.status(400).json({ error: err.toString() });
-    }
-  }
+	async show(req: Request, res: Response): Promise<Response<User>> {
+		try {
+			const user = await UsersModel.findById(req.params.id);
 
-  public async create(req: Request, res: Response): Promise<Response<User>> {
-    try {
-      if (!req.body.id) {
-        req.body.id = 0;
-      }
+			if (!user) {
+				throw new NotFoundUserException();
+			}
 
-      const user = await UsersModel.create(req.body);
+			return res.status(200).json(user);
+		} catch (err: any) {
+			if (err instanceof HttpException) {
+				return res.status(err.status).json({ error: err.message });
+			}
 
-      return res.status(201).json(user);
-    } catch (err: any) {
-      return res.status(400).json({ error: err.toString() });
-    }
-  }
+			return res.status(500).json({ error: err.message });
+		}
+	}
 
-  public async update(req: Request, res: Response): Promise<Response<User>> {
-    try {
-      const user = await UsersModel.findByIdAndUpdate(req.params.id, req.body, {
-        new: false,
-      });
+	async create(req: Request, res: Response): Promise<Response<User>> {
+		try {
+			const user = await UsersModel.create(req.body);
 
-      if (!user) {
-        throw new Error("User not found");
-      }
+			return res.status(201).json(user);
+		} catch (err: any) {
+			if (err instanceof HttpException) {
+				return res.status(err.status).json({ error: err.message });
+			}
 
-      return res.status(200).json(user);
-    } catch (err: any) {
-      return res.status(400).json({ error: err.toString() });
-    }
-  }
+			return res.status(500).json({ error: err.message });
+		}
+	}
 
-  public async delete(
-    req: Request,
-    res: Response
-  ): Promise<Response<{ deletedUser: User }>> {
-    try {
-      const user = await UsersModel.findByIdAndRemove(req.params.id);
+	async update(req: Request, res: Response): Promise<Response<User>> {
+		try {
+			const user = await UsersModel.findByIdAndUpdate(req.params.id, req.body, {
+				new: false,
+			});
 
-      if (!user) {
-        throw new Error("User not found");
-      }
+			if (!user) {
+				throw new NotFoundUserException();
+			}
 
-      return res.status(200).json({ deletedUser: user });
-    } catch (err: any) {
-      return res.status(400).json({ error: err.toString() });
-    }
-  }
+			return res.status(200).json(user);
+		} catch (err: any) {
+			if (err instanceof HttpException) {
+				return res.status(err.status).json({ error: err.message });
+			}
+
+			return res.status(500).json({ error: err.message });
+		}
+	}
+
+	async delete(
+		req: Request,
+		res: Response
+	): Promise<Response<{ deletedUser: User }>> {
+		try {
+			const user = await UsersModel.findByIdAndRemove(req.params.id);
+
+			if (!user) {
+				throw new NotFoundUserException();
+			}
+
+			return res.status(200).json({ deletedUser: user });
+		} catch (err: any) {
+			if (err instanceof HttpException) {
+				return res.status(err.status).json({ error: err.message });
+			}
+
+			return res.status(500).json({ error: err.message });
+		}
+	}
+}
+
+class NotFoundUserException extends HttpException {
+	constructor() {
+		super(404, "User not found");
+	}
 }
 
 const UsersRepository: UsersRepositoryClass = new UsersRepositoryClass();

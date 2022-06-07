@@ -4,8 +4,8 @@ import connection from "../../db/connection";
 import appRouter from "./router";
 
 class Server {
-  public express!: express.Application;
-  public apiPrefix = process.env.API_PREFIX || "/api";
+   express!: express.Application;
+   apiPrefix = process.env.API_PREFIX || "/api";
 
   constructor() {
     this.express = express();
@@ -33,7 +33,7 @@ class Server {
     appRouter(this.express);
   }
 
-  public listen(port: string | number): void {
+   listen(port: string | number): void {
     this.express.listen(port, () => {
       console.log("server is running on port " + port);
     });

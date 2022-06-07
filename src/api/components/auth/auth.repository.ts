@@ -1,95 +1,109 @@
 import { NextFunction, Request, Response } from "express";
 import * as jwt from "jsonwebtoken";
-import { User, TOKEN_SECRET, UsersModel } from "../users";
+import { HttpException } from "../../../core/utils";
+import { TOKEN_SECRET, User, UsersModel } from "../users";
 
 class AuthRepositoryClass {
-  public async login(
-    req: Request,
-    res: Response
-  ): Promise<Response<{ token: string }>> {
-    try {
-      const { email, password } = req.body;
+	async login(
+		req: Request,
+		res: Response
+	): Promise<Response<{ token: string }>> {
+		try {
+			const { email, password } = req.body;
 
-      const user = await UsersModel.findByCredentials(email, password);
+			const user = await UsersModel.findByCredentials(email, password);
 
-      if (!user) {
-        throw new Error("403");
-      }
+			if (!user) {
+				throw new UnauthorizedException();
+			}
 
-      const token = await user.generateAuthToken();
+			const token = await user.generateAuthToken();
 
-      if (!token) {
-        return res.status(500).json({ error: "Failed to generate token" });
-      }
+			if (!token) {
+				return res.status(500).json({ error: "Failed to generate token" });
+			}
 
-      return res.status(200).json({ accessToken: token });
-    } catch (err: any) {
-      if (err === "403") {
-        return res.status(403).json({ error: "Invalid credentials" });
-      }
+			return res.status(200).json({ accessToken: token });
+		} catch (err: any) {
+			if (err instanceof HttpException) {
+				return res.status(err.status).json({ error: err.message });
+			}
 
-      return res.status(500).json({ error: err.toString() });
-    }
-  }
+			return res.status(500).json({ error: err.toString() });
+		}
+	}
 
-  public async currentUser(
-    req: Request,
-    res: Response
-  ): Promise<Response<User>> {
-    try {
-      let token = req.header("Authorization");
+	async currentUser(req: Request, res: Response): Promise<Response<User>> {
+		try {
+			let token = req.header("Authorization");
 
-      if (!token) {
-        throw new Error("401");
-      }
+			if (!token) {
+				throw new ForbiddenException();
+			}
 
-      token = token.replace("Bearer", "").trim();
+			token = token.replace("Bearer", "").trim();
 
-      const user = await UsersModel.findOne({
-        accessToken: token,
-      });
+			const user = await UsersModel.findOne({
+				accessToken: token,
+			});
 
-      if (!user) {
-        throw new Error("401");
-      }
+			if (!user) {
+				throw new UnauthorizedException();
+			}
 
-      return res.status(200).json({ ...user.toJSON(), token });
-    } catch (err: any) {
-      if (err === "401") {
-        return res.status(err).json({ error: "Invalid token" });
-      }
+			return res.status(200).json({ ...user.toJSON(), token });
+		} catch (err: any) {
+			if (err instanceof HttpException) {
+				return res.status(err.status).json({ error: err.message });
+			}
+			return res.status(500).json({ error: "Failed to get the current user" });
+		}
+	}
 
-      return res.status(500).json({ error: "Failed to get the current user" });
-    }
-  }
+	async isAuthenticated(req: Request, res: Response, next: NextFunction) {
+		try {
+			let token = req.headers.authorization;
 
-  public async verifyToken(req: Request, res: Response, next: NextFunction) {
-    try {
-      let token = req.headers.authorization;
+			if (!token) {
+				throw new ForbiddenException();
+			}
 
-      if (!token) {
-        throw new Error("401");
-      }
+			token = token.replace("Bearer", "").trim();
 
-      token = token.replace("Bearer", "").trim();
+			let decoded: any = jwt.verify(token, TOKEN_SECRET);
 
-      let decoded: any = jwt.verify(token, TOKEN_SECRET);
+			const user = await UsersModel.findOne({
+				id: decoded._id,
+				accessToken: token,
+			});
 
-      if (!decoded) {
-        throw new Error("401");
-      }
+			if (!user) {
+				throw new UnauthorizedException();
+			}
 
-      next();
-    } catch (err: any) {
-      if (err === "401") {
-        return res.status(err).json({ error: "Invalid token" });
-      }
+			next();
+		} catch (err: any) {
+			if (err instanceof HttpException) {
+				return res.status(err.status).json({ error: err.message });
+			}
 
-      return res.status(500).json({ error: "Failed to authenticate the user" });
-    }
-  }
+			return res.status(500).json({ error: "Failed to authenticate the user" });
+		}
+	}
+}
+
+class UnauthorizedException extends HttpException {
+	constructor() {
+		super(401, "Invalid Token");
+	}
+}
+
+class ForbiddenException extends HttpException {
+	constructor() {
+		super(403, "Forbidden Access");
+	}
 }
 
 const AuthRepository: AuthRepositoryClass = new AuthRepositoryClass();
 
-export { AuthRepository };
+export { AuthRepository, UnauthorizedException, ForbiddenException };

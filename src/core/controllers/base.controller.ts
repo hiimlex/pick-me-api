@@ -1,12 +1,12 @@
 import { Router } from "express";
 
 abstract class BaseController {
-  public router = Router();
-  public abstract apiPrefix: string;
+	router = Router();
+	abstract apiPrefix: string;
 
-  constructor() {}
+	constructor() {}
 
-  public abstract initRoutes(): void;
+	abstract initRoutes(): void;
 }
 
-export default BaseController;
+export { BaseController };

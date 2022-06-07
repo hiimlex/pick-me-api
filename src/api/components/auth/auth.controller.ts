@@ -1,24 +1,25 @@
 import { AuthRepository } from "./auth.repository";
-import BaseController from "../../../core/controllers/base.controller";
+import { BaseController } from "../../../core/controllers";
 
 class AuthController extends BaseController {
-  public apiPrefix = "/auth";
+	apiPrefix = "/auth";
 
-  constructor() {
-    super();
+	constructor() {
+		super();
 
-    this.initRoutes();
-  }
+		this.initRoutes();
+	}
 
-  public initRoutes(): void {
-    this.router.post(this.apiPrefix + "/signin", AuthRepository.login);
-    this.router.get(
-      this.apiPrefix + "/currentUser",
-      [],
-      AuthRepository.verifyToken,
-      AuthRepository.currentUser
-    );
-  }
+	initRoutes(): void {
+		this.router.post(this.apiPrefix + "/signin", AuthRepository.login);
+		this.router.get(
+			this.apiPrefix + "/currentUser",
+			[],
+			AuthRepository.isAuthenticated,
+			AuthRepository.currentUser
+		);
+	}
 }
 
 export default AuthController;
+
