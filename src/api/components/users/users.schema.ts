@@ -3,6 +3,7 @@ import { Document, Schema } from "mongoose";
 import { ForbiddenException } from "../auth";
 import { User } from "./users.model";
 import { compareSync, hashSync } from "bcryptjs";
+import isEmail from "validator/lib/isEmail";
 
 export interface IUserDocument extends User, Document {
 	id: string;
@@ -21,6 +22,7 @@ const UserSchema = new Schema(
 			required: true,
 			unique: true,
 			trim: true,
+			validate: [isEmail, "Invalid email"],
 		},
 		accessToken: {
 			type: String,
