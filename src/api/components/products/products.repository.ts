@@ -1,20 +1,44 @@
 import { NextFunction, Request, Response } from "express";
+import { FilterQuery } from "mongoose";
 import { HttpException } from "../../../core/utils";
 import { ForbiddenException, UnauthorizedException } from "../auth";
 import { IUserDocument, UsersModel } from "../users";
 import { Product, ProductsModel } from "./products.model";
+import { IProductDocument } from "./products.schema";
+
+const ObjectId = require("mongoose").Types.ObjectId;
 
 class ProdutsRepositoryClass {
 	async index(req: Request, res: Response): Promise<Response<Product[]>> {
 		try {
-			const products = await ProductsModel.find({}).populate(
-				"owner",
-				"-password -accessToken -createdAt -updatedAt"
-			);
+			const filters = req.query;
+			let query: FilterQuery<IProductDocument> = {};
+
+			if (filters && Object.keys(filters).length) {
+				if (filters.ownerId) {
+					query.owner = ObjectId(filters.ownerId);
+				}
+
+				if (filters.productName) {
+					query.name = { $regex: new RegExp(filters.productName + "", "gmi") };
+				}
+
+				if (filters.categoryId) {
+					query.category = ObjectId(filters.categoryId);
+				}
+			}
+
+			const products = await ProductsModel.find(query)
+				.populate("owner", "name bio email ")
+				.populate("category", "-_id");
 
 			return res.status(200).json(products);
 		} catch (err: any) {
-			return res.status(400).json({ error: err.toString() });
+			if (err instanceof HttpException) {
+				return res.status(err.status).json({ error: err.message });
+			}
+
+			return res.status(500).json({ error: err.toString() });
 		}
 	}
 
@@ -22,10 +46,9 @@ class ProdutsRepositoryClass {
 		try {
 			const id = req.params.id;
 
-			const product = await ProductsModel.findById(id).populate(
-				"owner",
-				"-password -accessToken -createdAt -updatedAt -bio"
-			);
+			const product = await ProductsModel.findById(id)
+				.populate("owner", "name bio email ")
+				.populate("category", "-_id");
 
 			if (!product) {
 				throw new NotFoundProductException();
@@ -34,7 +57,7 @@ class ProdutsRepositoryClass {
 			return res.status(200).json(product);
 		} catch (err: any) {
 			if (err instanceof HttpException) {
-				return res.send(err.status).json({ error: err.message });
+				return res.status(err.status).json({ error: err.message });
 			}
 
 			return res.status(500).json({ error: err.toString() });
@@ -47,28 +70,27 @@ class ProdutsRepositoryClass {
 		next: NextFunction
 	): Promise<Response<Product>> {
 		try {
-			const authorizedUser = await getUserByToken(req, next);
+			const authenticatedUser = await getUserByToken(req, next);
 
-			if (!authorizedUser) {
+			if (!authenticatedUser) {
 				throw new ForbiddenException();
 			}
 
 			const body = req.body;
-			body.owner = authorizedUser._id;
+			body.owner = authenticatedUser._id;
 
 			const product = await ProductsModel.create(body);
 
-			await product.populate(
-				"owner",
-				"-password -accessToken -createdAt -updatedAt -bio"
-			);
+			const newProduct = await ProductsModel.findById(product._id)
+				.populate("owner", "name bio email ")
+				.populate("category", "-_id");
 
-			await product.save();
+			if (!newProduct) {
+				throw new NotFoundProductException();
+			}
 
-			return res.status(201).json(product);
+			return res.status(201).json({ createdProduct: newProduct });
 		} catch (err: any) {
-			console.log(err);
-
 			if (err instanceof HttpException) {
 				return res.status(err.status).json({ error: err.message });
 			}
@@ -92,18 +114,22 @@ class ProdutsRepositoryClass {
 				throw new UnauthorizedException();
 			}
 
-			const product = await ProductsModel.findById(id);
+			const query: FilterQuery<IProductDocument> = {
+				_id: ObjectId(id),
+				owner: ObjectId(authenticatedUser.id),
+			};
 
-			if (!product || product.owner._id + "" !== authenticatedUser.id) {
+			const product = await ProductsModel.findOne(query);
+
+			if (!product) {
 				throw new ForbiddenException();
 			}
 
 			await product.updateOne(body);
 
-			const updatedProduct = await ProductsModel.findById(id).populate(
-				"owner",
-				"-password -accessToken -createdAt -updatedAt -bio"
-			);
+			const updatedProduct = await ProductsModel.findById(id)
+				.populate("owner", "name bio email ")
+				.populate("category", "-_id");
 
 			if (!updatedProduct) {
 				throw new NotFoundProductException();
@@ -133,9 +159,16 @@ class ProdutsRepositoryClass {
 				throw new UnauthorizedException();
 			}
 
-			const product = await ProductsModel.findById(id);
+			const query: FilterQuery<IProductDocument> = {
+				_id: ObjectId(id),
+				owner: ObjectId(authenticatedUser.id),
+			};
 
-			if (!product || product.owner._id + "" !== authenticatedUser.id) {
+			const product = await ProductsModel.findOne(query)
+				.populate("owner", "name bio email ")
+				.populate("category", "-_id");
+
+			if (!product) {
 				throw new ForbiddenException();
 			}
 

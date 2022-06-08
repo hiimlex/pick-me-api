@@ -1,8 +1,8 @@
 import * as jwt from "jsonwebtoken";
 import { Document, Schema } from "mongoose";
-import * as passwordHash from "password-hash";
 import { ForbiddenException } from "../auth";
 import { User } from "./user.model";
+import { compareSync, hashSync } from "bcryptjs";
 
 export interface IUserDocument extends User, Document {
 	id: string;
@@ -37,7 +37,7 @@ UserSchema.pre("save", async function (next) {
 	const user: IUserDocument = this;
 
 	if (user.isModified("password")) {
-		user.password = passwordHash.generate(user.password);
+		user.password = hashSync(user.password, 12);
 	}
 
 	next();
@@ -47,9 +47,7 @@ UserSchema.methods.toJSON = function () {
 	const user = this as IUserDocument;
 	const { _id, password, accessToken, ...rest } = user.toObject();
 
-	console.log(user);
-
-	return { id: _id, ...rest };
+	return { id: _id.toString(), ...rest };
 };
 
 UserSchema.methods.generateAuthToken = async function () {
@@ -99,7 +97,7 @@ UserSchema.statics.findByCredentials = async function (
 		return Promise.reject("Invalid login credentials");
 	}
 
-	if (!passwordHash.verify(password, user.password)) {
+	if (!compareSync(password, user.password)) {
 		return Promise.reject("Wrong password");
 	}
 
@@ -107,4 +105,3 @@ UserSchema.statics.findByCredentials = async function (
 };
 
 export { UserSchema };
-

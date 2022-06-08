@@ -6,8 +6,8 @@ interface IProductUser {
 	name: string;
 	email: string;
 }
-export interface Product {
-	_id: number;
+interface Product {
+	id: string;
 	name: string;
 	description: string;
 	price: number;
@@ -16,7 +16,7 @@ export interface Product {
 	category: string;
 	createdAt: Date;
 	updatedAt: Date;
-	owner: any;
+	owner: IProductUser;
 }
 
 interface IProductsModel extends Model<IProductDocument> {}
@@ -26,5 +26,4 @@ const ProductsModel: IProductsModel = model<IProductDocument, IProductsModel>(
 	ProductsSchema
 );
 
-export { ProductsModel };
-
+export { ProductsModel, Product };

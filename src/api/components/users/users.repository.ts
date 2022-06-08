@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from "express";
+import mongoose from "mongoose";
 import { HttpException } from "../../../core/utils";
 import { ForbiddenException, UnauthorizedException } from "../auth";
-import { getUserByToken } from "../products";
+import { getUserByToken, ProductsModel } from "../products";
 import { User, UsersModel } from "./user.model";
 
 class UsersRepositoryClass {
@@ -106,11 +107,19 @@ class UsersRepositoryClass {
 				throw new ForbiddenException();
 			}
 
-			await user.deleteOne();
+			const products = await ProductsModel.find({
+				owner: new mongoose.Types.ObjectId(user.id),
+			});
 
-			const deletedUser = await UsersModel.findById(id);
+			if (products.length > 0) {
+				console.log(products);
+			}
 
-			return res.status(200).json({ deletedUser });
+			// await user.deleteOne();
+
+			// const deletedUser = await UsersModel.findById(id);
+
+			return res.status(200).json({});
 		} catch (err: any) {
 			if (err instanceof HttpException) {
 				return res.status(err.status).json({ error: err.message });

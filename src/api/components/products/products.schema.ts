@@ -2,7 +2,8 @@ import { Schema } from "mongoose";
 import { Product } from "./products.model";
 
 export interface IProductDocument extends Product, Document {
-	isNew: boolean;
+	id: string;
+	categoryName: string;
 }
 
 const ProductsSchema = new Schema(
@@ -20,7 +21,7 @@ const ProductsSchema = new Schema(
 			type: Number,
 		},
 		image: { type: String, required: true },
-		category: { type: String, required: true },
+		category: { type: Schema.Types.ObjectId, ref: "Categories" },
 		owner: {
 			ref: "Users",
 			type: Schema.Types.ObjectId,
@@ -36,9 +37,11 @@ const ProductsSchema = new Schema(
 ProductsSchema.methods.toJSON = function () {
 	const product = this;
 
-	const { _id, ...rest } = product.toObject();
+	console.log(product);
 
-	return { id: _id, ...rest };
+	const { _id, category, ...rest } = product.toObject();
+
+	return { id: _id.toString(), categoryName: category.name, ...rest };
 };
 
 export { ProductsSchema };
