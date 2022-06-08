@@ -7,8 +7,9 @@
 	},
 	"main": "index.js",
 	"scripts": {
-		"start": "ts-node-dev src/app.ts",
-		"postinstall": "tsc",
+		"start": "node dist/src/app.js",
+		"dev": "ts-node-dev src/app.ts",
+		"postinstall": "tsc && rm -v -rf src",
 		"watch-node": "nodemon dist/src/app.js",
 		"watch-ts": "tsc -w",
 		"test": "echo \"Error: no test specified\" && exit 1"
