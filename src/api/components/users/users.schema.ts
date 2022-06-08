@@ -1,7 +1,7 @@
 import * as jwt from "jsonwebtoken";
 import { Document, Schema } from "mongoose";
 import { ForbiddenException } from "../auth";
-import { User } from "./user.model";
+import { User } from "./users.model";
 import { compareSync, hashSync } from "bcryptjs";
 
 export interface IUserDocument extends User, Document {

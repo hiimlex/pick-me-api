@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import { HttpException } from "../../../core/utils";
 import { ForbiddenException, UnauthorizedException } from "../auth";
 import { getUserByToken, ProductsModel } from "../products";
-import { User, UsersModel } from "./user.model";
+import { User, UsersModel } from "./users.model";
 
 class UsersRepositoryClass {
 	async index(req: Request, res: Response): Promise<Response<User[]>> {
@@ -107,19 +107,15 @@ class UsersRepositoryClass {
 				throw new ForbiddenException();
 			}
 
-			const products = await ProductsModel.find({
+			await ProductsModel.findOneAndRemove({
 				owner: new mongoose.Types.ObjectId(user.id),
 			});
 
-			if (products.length > 0) {
-				console.log(products);
-			}
+			await user.deleteOne();
 
-			// await user.deleteOne();
+			const deletedUser = await UsersModel.findById(id);
 
-			// const deletedUser = await UsersModel.findById(id);
-
-			return res.status(200).json({});
+			return res.status(200).json({ deletedUser });
 		} catch (err: any) {
 			if (err instanceof HttpException) {
 				return res.status(err.status).json({ error: err.message });

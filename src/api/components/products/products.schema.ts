@@ -37,11 +37,15 @@ const ProductsSchema = new Schema(
 ProductsSchema.methods.toJSON = function () {
 	const product = this;
 
-	console.log(product);
-
 	const { _id, category, ...rest } = product.toObject();
 
-	return { id: _id.toString(), categoryName: category.name, ...rest };
+	let categoryName = "";
+
+	if (category && category.name) {
+		categoryName = category.name;
+	}
+
+	return { id: _id.toString(), categoryName, ...rest };
 };
 
 export { ProductsSchema };
