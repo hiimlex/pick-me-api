@@ -1,5 +1,7 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { HttpException } from "../../../core/utils";
+import { ForbiddenException, UnauthorizedException } from "../auth";
+import { getUserByToken } from "../products";
 import { User, UsersModel } from "./user.model";
 
 class UsersRepositoryClass {
@@ -53,17 +55,30 @@ class UsersRepositoryClass {
 		}
 	}
 
-	async update(req: Request, res: Response): Promise<Response<User>> {
+	async update(
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<Response<User>> {
 		try {
-			const user = await UsersModel.findByIdAndUpdate(req.params.id, req.body, {
-				new: false,
-			});
+			const body = req.body;
+			const id = req.params.id;
+
+			const user = await getUserByToken(req, next);
 
 			if (!user) {
-				throw new NotFoundUserException();
+				throw new UnauthorizedException();
 			}
 
-			return res.status(200).json(user);
+			if (id !== user.id) {
+				throw new ForbiddenException();
+			}
+
+			await user.updateOne(body);
+
+			const updatedUser = await UsersModel.findById(id);
+
+			return res.status(200).json({ updatedUser });
 		} catch (err: any) {
 			if (err instanceof HttpException) {
 				return res.status(err.status).json({ error: err.message });
@@ -75,16 +90,27 @@ class UsersRepositoryClass {
 
 	async delete(
 		req: Request,
-		res: Response
+		res: Response,
+		next: NextFunction
 	): Promise<Response<{ deletedUser: User }>> {
 		try {
-			const user = await UsersModel.findByIdAndRemove(req.params.id);
+			const id = req.params.id;
+
+			const user = await getUserByToken(req, next);
 
 			if (!user) {
-				throw new NotFoundUserException();
+				throw new UnauthorizedException();
 			}
 
-			return res.status(200).json({ deletedUser: user });
+			if (id !== user.id) {
+				throw new ForbiddenException();
+			}
+
+			await user.deleteOne();
+
+			const deletedUser = await UsersModel.findById(id);
+
+			return res.status(200).json({ deletedUser });
 		} catch (err: any) {
 			if (err instanceof HttpException) {
 				return res.status(err.status).json({ error: err.message });

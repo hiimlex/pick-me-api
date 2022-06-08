@@ -24,6 +24,25 @@ class ProductsController extends BaseController {
 			AuthRepository.isAuthenticated,
 			ProductsRepository.create
 		);
+
+		this.router.get(
+			this.apiPrefix + "/:id",
+			[],
+			AuthRepository.isAuthenticated,
+			ProductsRepository.show
+		);
+
+		this.router.put(
+			this.apiPrefix + "/:id",
+			AuthRepository.isAuthenticated,
+			ProductsRepository.update
+		);
+
+		this.router.delete(
+			this.apiPrefix + "/:id",
+			AuthRepository.isAuthenticated,
+			ProductsRepository.delete
+		);
 	}
 }
 

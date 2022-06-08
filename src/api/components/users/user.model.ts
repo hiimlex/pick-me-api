@@ -17,6 +17,6 @@ interface IUserModel extends Model<IUserDocument> {
 	findByCredentials(email: string, password: string): Promise<IUserDocument>;
 }
 
-const UsersModel: IUserModel = model<IUserDocument, any>("Users", UserSchema);
+const UsersModel: IUserModel = model<IUserDocument, IUserModel>("Users", UserSchema);
 
 export { UsersModel };
