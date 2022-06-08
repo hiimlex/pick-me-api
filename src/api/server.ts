@@ -2,7 +2,7 @@ import { json } from "body-parser";
 import express from "express";
 import connection from "../../db/connection";
 import appRouter from "./router";
-
+import cors from "cors";
 class Server {
 	express!: express.Application;
 	apiPrefix = process.env.API_PREFIX || "/api";
@@ -27,6 +27,7 @@ class Server {
 
 	private middlewares(): void {
 		this.express.use(json());
+		this.express.use(cors());
 	}
 
 	private routes(): void {
