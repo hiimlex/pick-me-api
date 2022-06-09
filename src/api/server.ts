@@ -3,6 +3,7 @@ import express from "express";
 import connection from "../../db/connection";
 import appRouter from "./router";
 import cors from "cors";
+import { CategoriesModel } from "./components/categories";
 class Server {
 	express!: express.Application;
 	apiPrefix = process.env.API_PREFIX || "/api";
@@ -20,9 +21,29 @@ class Server {
 			await connection.then(() => {
 				console.log("Database is connected");
 			});
+
+			this.generateCategories();
 		} catch (err: any) {
 			throw new Error(err);
 		}
+	}
+
+	private generateCategories(): void {
+		const categories = [
+			{ name: "Art" },
+			{ name: "Product" },
+			{ name: "Service" },
+		];
+
+		categories.forEach(async (item) => {
+			const hasCategory = await CategoriesModel.findOne({ name: item.name });
+
+			if (!hasCategory) {
+				const category = await CategoriesModel.create({ name: item.name });
+
+				await category.save();
+			}
+		});
 	}
 
 	private middlewares(): void {
@@ -42,4 +63,3 @@ class Server {
 }
 
 export { Server };
-
