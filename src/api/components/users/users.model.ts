@@ -7,6 +7,7 @@ export interface User {
 	name: string;
 	bio: string;
 	email: string;
+	avatar: string;
 	accessToken: string;
 	createdAt: Date;
 	updatedAt: Date;
@@ -14,7 +15,7 @@ export interface User {
 
 interface IUserModel extends Model<IUserDocument> {
 	findByToken(token: string): Promise<IUserDocument>;
-	findByCredentials(email: string, password: string): Promise<IUserDocument>;
+	findByCredentials(username: string, password: string): Promise<IUserDocument>;
 }
 
 const UsersModel: IUserModel = model<IUserDocument, IUserModel>("Users", UserSchema);

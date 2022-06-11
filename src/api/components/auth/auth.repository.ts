@@ -9,9 +9,9 @@ class AuthRepositoryClass {
 		res: Response
 	): Promise<Response<{ token: string }>> {
 		try {
-			const { email, password } = req.body;
+			const { username, password } = req.body;
 
-			const user = await UsersModel.findByCredentials(email, password);
+			const user = await UsersModel.findByCredentials(username, password);
 
 			if (!user) {
 				throw new UnauthorizedException();

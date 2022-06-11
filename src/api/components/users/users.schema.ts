@@ -30,6 +30,10 @@ const UserSchema = new Schema(
 			trim: true,
 			validate: [isEmail, "Invalid email"],
 		},
+		avatar: {
+			type: String,
+			default: "https://i.pravatar.cc/300",
+		},
 		accessToken: {
 			type: String,
 		},
@@ -94,12 +98,12 @@ UserSchema.statics.findByToken = async function (
 };
 
 UserSchema.statics.findByCredentials = async function (
-	email: string,
+	username: string,
 	password: string
 ): Promise<IUserDocument> {
 	let User = this;
 
-	const user = await User.findOne({ email });
+	const user = await User.findOne({ username });
 
 	if (!user) {
 		return Promise.reject("Invalid login credentials");
