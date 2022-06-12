@@ -1,8 +1,7 @@
 require("dotenv").config();
 import { Server } from "./api/server";
 
-const PORT = process.env.PORT || 80;
+const PORT = 3000 || process.env.PORT;
 const server = new Server();
 
 server.listen(PORT);
-

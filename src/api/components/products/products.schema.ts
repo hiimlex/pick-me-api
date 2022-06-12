@@ -4,6 +4,7 @@ import { Product } from "./products.model";
 export interface IProductDocument extends Product, Document {
 	id: string;
 	categoryName: string;
+	populateAll: () => Promise<IProductDocument>;
 }
 
 const ProductsSchema = new Schema(
@@ -20,7 +21,10 @@ const ProductsSchema = new Schema(
 		quantity: {
 			type: Number,
 		},
-		image: { type: String, required: true },
+		image: {
+			ref: "Files",
+			type: Schema.Types.ObjectId,
+		},
 		category: { type: Schema.Types.ObjectId, ref: "Categories" },
 		owner: {
 			ref: "Users",
@@ -30,7 +34,7 @@ const ProductsSchema = new Schema(
 	{
 		versionKey: false,
 		collection: "Products",
-		timestamps: { createdAt: true, updatedAt: true },
+		timestamps: true,
 	}
 );
 

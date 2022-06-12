@@ -134,4 +134,4 @@ class NotFoundUserException extends HttpException {
 
 const UsersRepository: UsersRepositoryClass = new UsersRepositoryClass();
 
-export { UsersRepository };
+export { UsersRepository, NotFoundUserException };

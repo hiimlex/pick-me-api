@@ -8,7 +8,7 @@ import { IProductDocument } from "./products.schema";
 
 const ObjectId = require("mongoose").Types.ObjectId;
 
-class ProdutsRepositoryClass {
+class ProductsRepositoryClass {
 	async index(req: Request, res: Response): Promise<Response<Product[]>> {
 		try {
 			const filters = req.query;
@@ -30,7 +30,10 @@ class ProdutsRepositoryClass {
 
 			const products = await ProductsModel.find(query)
 				.populate("owner", "name bio email ")
-				.populate("category", "-_id");
+				.populate("category", "-_id")
+				.populate("image", "-_id")
+				.lean()
+				.exec();
 
 			return res.status(200).json(products);
 		} catch (err: any) {
@@ -48,7 +51,10 @@ class ProdutsRepositoryClass {
 
 			const product = await ProductsModel.findById(id)
 				.populate("owner", "name bio email ")
-				.populate("category", "-_id");
+				.populate("category", "-_id")
+				.populate("image", "-_id")
+				.lean()
+				.exec();
 
 			if (!product) {
 				throw new NotFoundProductException();
@@ -83,7 +89,10 @@ class ProdutsRepositoryClass {
 
 			const newProduct = await ProductsModel.findById(product._id)
 				.populate("owner", "name bio email ")
-				.populate("category", "-_id");
+				.populate("category", "-_id")
+				.populate("image", "-_id")
+				.lean()
+				.exec();
 
 			if (!newProduct) {
 				throw new NotFoundProductException();
@@ -129,7 +138,10 @@ class ProdutsRepositoryClass {
 
 			const updatedProduct = await ProductsModel.findById(id)
 				.populate("owner", "name bio email ")
-				.populate("category", "-_id");
+				.populate("category", "-_id")
+				.populate("image", "-_id")
+				.lean()
+				.exec();
 
 			if (!updatedProduct) {
 				throw new NotFoundProductException();
@@ -166,7 +178,8 @@ class ProdutsRepositoryClass {
 
 			const product = await ProductsModel.findOne(query)
 				.populate("owner", "name bio email ")
-				.populate("category", "-_id");
+				.populate("category", "-_id")
+				.populate("image", "-_id");
 
 			if (!product) {
 				throw new ForbiddenException();
@@ -216,6 +229,7 @@ class NotFoundProductException extends HttpException {
 	}
 }
 
-const ProductsRepository: ProdutsRepositoryClass = new ProdutsRepositoryClass();
+const ProductsRepository: ProductsRepositoryClass =
+	new ProductsRepositoryClass();
 
 export { ProductsRepository, getUserByToken, NotFoundProductException };

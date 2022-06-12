@@ -33,8 +33,8 @@ const UserSchema = new Schema(
 			validate: [isEmail, "Invalid email"],
 		},
 		avatar: {
-			type: String,
-			default: "https://i.pravatar.cc/300",
+			ref: "Files",
+			type: Schema.Types.ObjectId,
 		},
 		accessToken: {
 			type: String,
@@ -43,7 +43,7 @@ const UserSchema = new Schema(
 	{
 		versionKey: false,
 		collection: "Users",
-		timestamps: { createdAt: true, updatedAt: true },
+		timestamps: true,
 	}
 );
 
