@@ -5,6 +5,8 @@ import { User } from "./users.model";
 import { compareSync, hashSync } from "bcryptjs";
 import isEmail from "validator/lib/isEmail";
 
+const uniqueValidator = require("mongoose-unique-validator");
+
 export interface IUserDocument extends User, Document {
 	id: string;
 	generateAuthToken(): Promise<string>;
@@ -44,6 +46,8 @@ const UserSchema = new Schema(
 		timestamps: { createdAt: true, updatedAt: true },
 	}
 );
+
+UserSchema.plugin(uniqueValidator, { message: "{PATH} already exists" });
 
 UserSchema.pre("save", async function (next) {
 	const user: IUserDocument = this;
