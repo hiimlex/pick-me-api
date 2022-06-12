@@ -12,12 +12,7 @@ class ProductsController extends BaseController {
 	}
 
 	initRoutes(): void {
-		this.router.get(
-			this.apiPrefix,
-			[],
-			AuthRepository.isAuthenticated,
-			ProductsRepository.index
-		);
+		this.router.get(this.apiPrefix, [], ProductsRepository.index);
 
 		this.router.post(
 			this.apiPrefix,
