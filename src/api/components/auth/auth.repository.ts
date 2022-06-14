@@ -45,7 +45,7 @@ class AuthRepositoryClass {
 
 			const user = await UsersModel.findOne({
 				accessToken: token,
-			});
+			}).populate("avatar", "-_id");
 
 			if (!user) {
 				throw new UnauthorizedException();

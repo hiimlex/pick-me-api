@@ -8,7 +8,7 @@ import { User, UsersModel } from "./users.model";
 class UsersRepositoryClass {
 	async index(req: Request, res: Response): Promise<Response<User[]>> {
 		try {
-			const users = await UsersModel.find({});
+			const users = await UsersModel.find({}).populate("avatar", "-_id");
 
 			if (!users) {
 				throw new NotFoundUserException();
@@ -26,7 +26,10 @@ class UsersRepositoryClass {
 
 	async show(req: Request, res: Response): Promise<Response<User>> {
 		try {
-			const user = await UsersModel.findById(req.params.id);
+			const user = await UsersModel.findById(req.params.id).populate(
+				"avatar",
+				"-_id"
+			);
 
 			if (!user) {
 				throw new NotFoundUserException();
@@ -77,7 +80,10 @@ class UsersRepositoryClass {
 
 			await user.updateOne(body);
 
-			const updatedUser = await UsersModel.findById(id);
+			const updatedUser = await UsersModel.findById(id).populate(
+				"avatar",
+				"-_id"
+			);
 
 			return res.status(200).json({ updatedUser });
 		} catch (err: any) {
@@ -109,7 +115,7 @@ class UsersRepositoryClass {
 
 			await ProductsModel.findOneAndRemove({
 				owner: new mongoose.Types.ObjectId(user.id),
-			});
+			}).populate("avatar", "-_id");
 
 			await user.deleteOne();
 

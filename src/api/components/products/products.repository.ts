@@ -31,9 +31,7 @@ class ProductsRepositoryClass {
 			const products = await ProductsModel.find(query)
 				.populate("owner", "name bio email ")
 				.populate("category", "-_id")
-				.populate("image", "-_id")
-				.lean()
-				.exec();
+				.populate("image", "-_id");
 
 			return res.status(200).json(products);
 		} catch (err: any) {
@@ -52,9 +50,7 @@ class ProductsRepositoryClass {
 			const product = await ProductsModel.findById(id)
 				.populate("owner", "name bio email ")
 				.populate("category", "-_id")
-				.populate("image", "-_id")
-				.lean()
-				.exec();
+				.populate("image", "-_id");
 
 			if (!product) {
 				throw new NotFoundProductException();
@@ -90,9 +86,7 @@ class ProductsRepositoryClass {
 			const newProduct = await ProductsModel.findById(product._id)
 				.populate("owner", "name bio email ")
 				.populate("category", "-_id")
-				.populate("image", "-_id")
-				.lean()
-				.exec();
+				.populate("image", "-_id");
 
 			if (!newProduct) {
 				throw new NotFoundProductException();
@@ -139,9 +133,7 @@ class ProductsRepositoryClass {
 			const updatedProduct = await ProductsModel.findById(id)
 				.populate("owner", "name bio email ")
 				.populate("category", "-_id")
-				.populate("image", "-_id")
-				.lean()
-				.exec();
+				.populate("image", "-_id");
 
 			if (!updatedProduct) {
 				throw new NotFoundProductException();
