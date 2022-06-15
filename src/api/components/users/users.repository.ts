@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import mongoose, { MongooseError } from "mongoose";
 import { HttpException } from "../../../core/utils";
 import { ForbiddenException, UnauthorizedException } from "../auth";
+import { FilesModel, NotFoundFileException } from "../files";
 import { getUserByToken, ProductsModel } from "../products";
 import { User, UsersModel } from "./users.model";
 
@@ -47,9 +48,31 @@ class UsersRepositoryClass {
 
 	async create(req: Request, res: Response): Promise<Response<User>> {
 		try {
-			const user = await UsersModel.create(req.body);
+			if (!req.file) {
+				throw new NotFoundFileException();
+			}
 
-			return res.status(201).json(user);
+			const image = req.file.buffer;
+
+			const createdImage = await FilesModel.create({ image });
+			await createdImage.save();
+
+			const data = JSON.parse(req.body.data);
+			data.avatar = createdImage._id;
+
+			const user = await UsersModel.create(data);
+			await user.save();
+
+			const newUser = await UsersModel.findById(user.id).populate(
+				"avatar",
+				"-_id"
+			);
+
+			if (!newUser) {
+				throw new NotFoundUserException();
+			}
+
+			return res.status(201).json({ createdUser: user });
 		} catch (err: any) {
 			if (err instanceof HttpException) {
 				return res.status(err.status).json({ error: err.message });

@@ -30,9 +30,9 @@ class Server {
 
 	private generateCategories(): void {
 		const categories = [
-			{ name: "Art" },
-			{ name: "Product" },
-			{ name: "Service" },
+			{ name: "picture" },
+			{ name: "product" },
+			{ name: "service" },
 		];
 
 		categories.forEach(async (item) => {

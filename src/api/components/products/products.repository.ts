@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { FilterQuery } from "mongoose";
 import { HttpException } from "../../../core/utils";
 import { ForbiddenException, UnauthorizedException } from "../auth";
+import { FilesModel, NotFoundFileException } from "../files";
 import { IUserDocument, UsersModel } from "../users";
 import { Product, ProductsModel } from "./products.model";
 import { IProductDocument } from "./products.schema";
@@ -78,10 +79,22 @@ class ProductsRepositoryClass {
 				throw new ForbiddenException();
 			}
 
-			const body = req.body;
-			body.owner = authenticatedUser._id;
+			if (!req.file) {
+				throw new NotFoundFileException();
+			}
 
-			const product = await ProductsModel.create(body);
+			const image = req.file.buffer;
+
+			const createdImage = await FilesModel.create({ image });
+			await createdImage.save();
+
+			const data = JSON.parse(req.body.data);
+			data.owner = authenticatedUser._id;
+
+			const product = await ProductsModel.create({
+				...data,
+				image: createdImage._id,
+			});
 
 			const newProduct = await ProductsModel.findById(product._id)
 				.populate("owner", "name bio email ")

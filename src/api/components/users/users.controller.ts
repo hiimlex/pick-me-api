@@ -1,6 +1,7 @@
 import { UsersRepository } from "./users.repository";
 import { AuthRepository } from "../auth/auth.repository";
 import { BaseController } from "../../../core/controllers/base.controller";
+import { multerUpload } from "../../../core/utils";
 
 class UsersController extends BaseController {
 	apiPrefix = "/users";
@@ -19,7 +20,11 @@ class UsersController extends BaseController {
 			AuthRepository.isAuthenticated,
 			UsersRepository.show
 		);
-		this.router.post(this.apiPrefix, UsersRepository.create);
+		this.router.post(
+			this.apiPrefix,
+			multerUpload.single("file"),
+			UsersRepository.create
+		);
 		this.router.put(
 			this.apiPrefix + "/:id",
 			AuthRepository.isAuthenticated,

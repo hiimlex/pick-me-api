@@ -4,6 +4,7 @@ import { Product } from "./products.model";
 export interface IProductDocument extends Product, Document {
 	id: string;
 	categoryName: string;
+	imageData: string;
 	populateAll: () => Promise<IProductDocument>;
 }
 
@@ -15,7 +16,6 @@ const ProductsSchema = new Schema(
 		},
 		description: {
 			type: String,
-			required: true,
 		},
 		price: { type: Number, required: true },
 		quantity: {
@@ -25,7 +25,14 @@ const ProductsSchema = new Schema(
 			ref: "Files",
 			type: Schema.Types.ObjectId,
 		},
-		category: { type: Schema.Types.ObjectId, ref: "Categories" },
+		postColor: {
+			type: String,
+			default: "#ffffff"
+		},
+		category: {
+			ref: "Categories",
+			type: Schema.Types.ObjectId,
+		},
 		owner: {
 			ref: "Users",
 			type: Schema.Types.ObjectId,
@@ -41,7 +48,7 @@ const ProductsSchema = new Schema(
 ProductsSchema.methods.toJSON = function () {
 	const product = this;
 
-	const { _id, category, ...rest } = product.toObject();
+	const { _id, category, image, ...rest } = product.toObject();
 
 	let categoryName = "";
 
@@ -49,7 +56,13 @@ ProductsSchema.methods.toJSON = function () {
 		categoryName = category.name;
 	}
 
-	return { id: _id.toString(), categoryName, ...rest };
+	let imageData = "";
+
+	if (image && image.image) {
+		imageData = image.image;
+	}
+
+	return { id: _id.toString(), categoryName, imageData, ...rest };
 };
 
 export { ProductsSchema };

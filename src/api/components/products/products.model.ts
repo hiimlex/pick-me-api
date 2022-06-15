@@ -9,11 +9,13 @@ interface IProductUser {
 interface Product {
 	id: string;
 	name: string;
+	categoryName: string;
+	imageData: string;
+	postColor: string;
 	description: string;
 	price: number;
 	quantity?: number;
 	image: string;
-	category: string;
 	createdAt: Date;
 	updatedAt: Date;
 	owner: IProductUser;
