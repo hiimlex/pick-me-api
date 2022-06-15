@@ -1,10 +1,7 @@
 import { BaseController } from "../../../core/controllers";
+import { multerUpload } from "../../../core/utils";
 import { AuthRepository } from "../auth";
 import { FilesRepository } from "./files.repository";
-import multer from "multer";
-
-const multerStorage = multer.memoryStorage();
-const upload = multer({ storage: multerStorage });
 
 class FilesController extends BaseController {
 	apiPrefix = "/files";
@@ -25,14 +22,14 @@ class FilesController extends BaseController {
 
 		this.router.post(
 			this.apiPrefix + "/upload/product/:id",
-			upload.single("file"),
+			multerUpload.single("file"),
 			AuthRepository.isAuthenticated,
 			FilesRepository.uploadProductFile
 		);
 
 		this.router.post(
 			this.apiPrefix + "/upload/user/:id",
-			upload.single("file"),
+			multerUpload.single("file"),
 			AuthRepository.isAuthenticated,
 			FilesRepository.uploadUserFile
 		);

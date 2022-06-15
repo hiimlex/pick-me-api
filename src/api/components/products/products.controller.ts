@@ -1,4 +1,5 @@
 import { BaseController } from "../../../core/controllers";
+import { multerUpload } from "../../../core/utils";
 import { AuthRepository } from "../auth";
 import { ProductsRepository } from "./products.repository";
 
@@ -16,6 +17,7 @@ class ProductsController extends BaseController {
 
 		this.router.post(
 			this.apiPrefix,
+			multerUpload.single("file"),
 			AuthRepository.isAuthenticated,
 			ProductsRepository.create
 		);

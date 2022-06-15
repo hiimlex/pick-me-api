@@ -1,5 +1,4 @@
 import { BaseController } from "../../../core/controllers";
-import { AuthRepository } from "../auth";
 import { CategoriesRepository } from "./categories.repository";
 
 class CategoriesController extends BaseController {
@@ -12,12 +11,7 @@ class CategoriesController extends BaseController {
 	}
 
 	initRoutes(): void {
-		this.router.get(
-			this.apiPrefix,
-			[],
-			AuthRepository.isAuthenticated,
-			CategoriesRepository.index
-		);
+		this.router.get(this.apiPrefix, [], CategoriesRepository.index);
 	}
 }
 
